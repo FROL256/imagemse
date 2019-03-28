@@ -10,7 +10,7 @@ import csv
 def mse(img1, img2):
   result = subprocess.run(["./imagemse", img1, img2], stdout=subprocess.PIPE)
   mseStr = result.stdout.decode('utf-8')
-  reRes  = re.search(r'\d+.\d+', mseStr)
+  reRes  = re.search(r'^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$', mseStr)
   if reRes != None:
     return float(reRes.group())
   else:
@@ -61,25 +61,14 @@ hdr_ref2 = hdr_dict_sorted2[-1][1]
 refErrLdr = mse(folder1 + "/" + ldr_ref, folder2 + "/" + ldr_ref2)
 refErrHdr = mse(folder1 + "/" + hdr_ref, folder2 + "/" + hdr_ref2)
 
-#print("errHdrTest = ", mse(folder1 + "/" + hdr_ref, folder1 + "/" + hdr_dict_sorted1[0][1]))
-#print("errHdrTest = ", mse(folder1 + "/" + hdr_ref, folder1 + "/" + hdr_dict_sorted1[1][1]))
-#print("errHdrTest = ", mse(folder1 + "/" + hdr_ref, folder1 + "/" + hdr_dict_sorted1[2][1]))
-#print("errHdrTest = ", mse(folder1 + "/" + hdr_ref, folder1 + "/" + hdr_dict_sorted1[3][1]))
-#print("errHdrTest = ", mse(folder1 + "/" + hdr_ref, folder1 + "/" + hdr_dict_sorted1[4][1]))
-
-#print("hdr_ref = ", hdr_ref, "; hdr_ref2 = ", hdr_ref2)
-#print("refErrLdr = ", refErrLdr)
-#print("refErrHdr = ", refErrHdr)
-
 csv_file = open('out.csv', mode='w')
 writer   = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-#for (name,err) in eval_mse_for_images(ldr_dict_sorted1):
-#  writer.writerow([name, err, refErrLdr])
+for (name,err) in eval_mse_for_images(ldr_dict_sorted1):
+  writer.writerow([name, err, refErrLdr])
 
-
-for (name,err) in eval_mse_for_images(hdr_dict_sorted2):
-  writer.writerow([name, err, refErrHdr])
+#for (name,err) in eval_mse_for_images(hdr_dict_sorted2):
+ # writer.writerow([name, err, refErrHdr])
  
 #outFile = open("out.csv","w") 
 #outFile.write("")
