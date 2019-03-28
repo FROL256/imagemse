@@ -16,7 +16,7 @@ def mse(img1, img2):
   else:
     return 0.0
 
-def eval_mse_for_images(a_list):
+def eval_mse_for_images(a_list, folder1):
 
   myref = a_list[-1][1]
 
@@ -40,37 +40,40 @@ def sorted_list_from_dir(folder1, ext):
 # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 # ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+INPUTFOLDER = "/home/frol/Dropbox/temp/L1.1/Hydra/PT/exp1"
 
-INPUTFOLDER = "/home/frol/Dropbox/temp/L1.1/Hydra/PT"
-
-folder1 = INPUTFOLDER + "/exp1"
-folder2 = INPUTFOLDER + "/exp2"
-
-ldr_dict_sorted1 = sorted_list_from_dir(folder1, ".png")
-hdr_dict_sorted1 = sorted_list_from_dir(folder1, ".hdr")
-
-ldr_dict_sorted2 = sorted_list_from_dir(folder2, ".png")
-hdr_dict_sorted2 = sorted_list_from_dir(folder2, ".hdr")
+ldr_dict_sorted1 = sorted_list_from_dir(INPUTFOLDER, ".png")
+hdr_dict_sorted1 = sorted_list_from_dir(INPUTFOLDER, ".hdr")
 
 ldr_ref = ldr_dict_sorted1[-1][1]
 hdr_ref = hdr_dict_sorted1[-1][1]
 
-ldr_ref2 = ldr_dict_sorted2[-1][1]
-hdr_ref2 = hdr_dict_sorted2[-1][1]
+ldr_ref2 = ldr_dict_sorted1[-2][1]
+hdr_ref2 = hdr_dict_sorted1[-2][1]
 
-refErrLdr = mse(folder1 + "/" + ldr_ref, folder2 + "/" + ldr_ref2)
-refErrHdr = mse(folder1 + "/" + hdr_ref, folder2 + "/" + hdr_ref2)
+refErrLdr = mse(INPUTFOLDER + "/" + ldr_ref, INPUTFOLDER + "/" + ldr_ref2)
+refErrHdr = mse(INPUTFOLDER + "/" + hdr_ref, INPUTFOLDER + "/" + hdr_ref2)
 
 csv_file = open('out.csv', mode='w')
 writer   = csv.writer(csv_file, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
 
-for (name,err) in eval_mse_for_images(ldr_dict_sorted1):
-  writer.writerow([name, err, refErrLdr])
+arr1 = eval_mse_for_images(ldr_dict_sorted1, INPUTFOLDER)
+arr2 = eval_mse_for_images(hdr_dict_sorted1, INPUTFOLDER)
 
-#for (name,err) in eval_mse_for_images(hdr_dict_sorted2):
- # writer.writerow([name, err, refErrHdr])
- 
-#outFile = open("out.csv","w") 
-#outFile.write("")
 
+writer.writerow(["time(min)", "mse_ldr", "mse_ref_ldr", "time(min)", "mse_hdr*256", "mse_ref_ldr*256"])
+
+for i in range(0,len(arr1)):
+  (name1,err1) = arr1[i]
+  (name2,err2) = arr2[i]
+  time1 = int(re.search(r'\d+', name1).group())
+  time2 = int(re.search(r'\d+', name2).group())
+
+  if time1 == 0:
+    time1 = 0.5
+
+  if time2 == 0:
+    time2 = 0.5
+
+  writer.writerow([time1, err1, refErrLdr, time2, 256.0*err2, 256.0*refErrHdr])
 
