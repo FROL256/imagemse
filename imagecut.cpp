@@ -210,7 +210,7 @@ int main(int argc, const char** argv)
        mse = MSE_RGB_LDR(image1, image2);
     }
 
-    std::cout << "MSE = " << mse << std::endl;
+    std::cout << mse << std::endl;
 
   }
   catch(std::bad_alloc err)
