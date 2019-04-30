@@ -229,7 +229,7 @@ float MSE_RGB_HDR(const std::vector<float>& image1, const std::vector<float>& im
     accum += double( (r1-r2)*(r1-r2) + (b1-b2)*(b1-b2) + (g1-g2)*(g1-g2) );
   }
 
-  return float(4.0*accum/double(image1.size()));
+  return float(4.0*accum/double(image1.size())); // we mult by 4 due to image2.size() == w*h*4, but we actually want w*h
 }
 
 

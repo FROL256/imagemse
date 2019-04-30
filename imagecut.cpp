@@ -6,12 +6,10 @@
 #include <algorithm>
 #include <FreeImage.h>
 
-#include <sys/types.h>
-#include <dirent.h>
-#include <errno.h>
 #include <cassert>
 
 void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message);
+
 bool LoadLDRImageFromFile(const char* a_fileName,
                           int* pW, int* pH, std::vector<int32_t>& a_data);
 bool SaveLDRImageToFile(const char* a_fileName, int w, int h, int32_t* data);
@@ -23,24 +21,7 @@ bool LoadHDRImageFromFile(const char* a_fileName,
 float MSE_RGB_LDR(const std::vector<int32_t>& image1, const std::vector<int32_t>& image2);
 float MSE_RGB_HDR(const std::vector<float>& image1, const std::vector<float>& image2);
 
-std::vector<std::string> listfiles(const std::string& dir)
-{
-    std::vector<std::string> files;
-    DIR *dp;
-    struct dirent *dirp;
-    if((dp  = opendir(dir.c_str())) == NULL) {
-        std::cout << "Error(" << errno << ") opening " << dir << std::endl;
-        return std::vector<std::string>();
-    }
-
-    while ((dirp = readdir(dp)) != NULL) {
-        files.push_back(std::string(dirp->d_name));
-    }
-    closedir(dp);
-    return files;
-}
-
-
+/*
 void imagecut(std::string dir, int* xywh, int quads, std::string dir_out)
 {
   
@@ -125,17 +106,26 @@ void imagecut(std::string dir, int* xywh, int quads, std::string dir_out)
     }
   }
 
-
 }
+*/
 
 
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-std::vector<int32_t> cut(const std::vector<int32_t>& a_image, int minX, int minY, int sizeX, int sizeY, int w)
+std::vector<int32_t> cut(const std::vector<int32_t>& a_image, int minX, int minY, int sizeX, int sizeY, int w, int h)
 {
+  int maxX = minX + sizeX;
+  int maxY = minY + sizeY;
+
+  assert(minX >= 0);
+  assert(minY >= 0);
+  assert(maxX < w);
+  assert(maxY < h);
+
   std::vector<int32_t> imageCut(sizeX*sizeY);
  
   for(int y=0;y<sizeY;y++)
@@ -148,8 +138,16 @@ std::vector<int32_t> cut(const std::vector<int32_t>& a_image, int minX, int minY
 }
 
 
-std::vector<float> cut(const std::vector<float>& a_image, int minX, int minY, int sizeX, int sizeY, int w)
+std::vector<float> cut(const std::vector<float>& a_image, int minX, int minY, int sizeX, int sizeY, int w, int h)
 {
+  int maxX = minX + sizeX;
+  int maxY = minY + sizeY;
+
+  assert(minX >= 0);
+  assert(minY >= 0);
+  assert(maxX < w);
+  assert(maxY < h);
+
   std::vector<float> imageCut(size_t(sizeX*sizeY*4));
   
   for(int y=0;y<sizeY;y++)
@@ -158,9 +156,6 @@ std::vector<float> cut(const std::vector<float>& a_image, int minX, int minY, in
     {
       const size_t offset1 = 4*(sizeX*y + x);
       const size_t offset2 = 4*((minY+y)*w + minX + x);
-      
-      assert(offset1+3 < imageCut.size());
-      assert(offset2+3 < a_image.size());
       
       imageCut[offset1 + 0] = a_image[offset2 + 0];
       imageCut[offset1 + 1] = a_image[offset2 + 1];
@@ -180,16 +175,24 @@ int main(int argc, const char** argv)
 {
   try 
   { 
-    if(argc < 3)
+    if(argc < 3 + 4)
     {
       std::cout << "argc = " << argc << std::endl;
       std::cout << "must freater or equal 3" << std::endl; 
-      std::cout << "example: 'imagemse image1.png image2.png'" << std::endl;
+      std::cout << "example: 'imagecut imageIn.png subImageOut.png 20 50 100 100'" << std::endl;
+      std::cout << "args   : 'imagecut input.png output.png boxMinX boxMinY boxSizeX boxSizeY'" << std::endl;
       return 0; 
     }
 
     std::string fileImg0 = argv[1];
     std::string fileImg1 = argv[2];
+
+    const int boxMinX = atoi(argv[3]);
+    const int boxMinY = atoi(argv[4]);
+    
+    const int boxSizeX = atoi(argv[5]);
+    const int boxSizeY = atoi(argv[6]);
+
 
     int w,h;
     std::vector<int32_t> image1, image2;
@@ -199,18 +202,18 @@ int main(int argc, const char** argv)
 
     if(fileImg0.find(".hdr") != std::string::npos)
     {
-       LoadHDRImageFromFile(fileImg0.c_str(), &w, &h, image1f);
-       LoadHDRImageFromFile(fileImg1.c_str(), &w, &h, image2f);
-       mse = MSE_RGB_HDR(image1f, image2f);
+      LoadHDRImageFromFile(fileImg0.c_str(), &w, &h, image1f);
+      auto dataCut = cut(image1f, boxMinX, boxMinY, boxSizeX, boxSizeY, w, h);
+      //SaveHDRImageToFile(fileImg1.c_str(), boxSizeX, boxSizeY, dataCut.data());
+      std::cout << "SaveHDRImageToFile: " << "not implemented" << std::endl;
     }
     else
     {
-       LoadLDRImageFromFile(fileImg0.c_str(), &w, &h, image1);
-       LoadLDRImageFromFile(fileImg1.c_str(), &w, &h, image2);
-       mse = MSE_RGB_LDR(image1, image2);
+      LoadLDRImageFromFile(fileImg0.c_str(), &w, &h, image1);
+      auto dataCut = cut(image1, boxMinX, boxMinY, boxSizeX, boxSizeY, w, h);
+      SaveLDRImageToFile(fileImg1.c_str(), boxSizeX, boxSizeY, dataCut.data());
     }
 
-    std::cout << mse << std::endl;
 
   }
   catch(std::bad_alloc err)
