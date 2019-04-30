@@ -2,13 +2,10 @@
 #include <vector>
 #include <string>
 
-bool LoadLDRImageFromFile(const char* a_fileName,
-                          int* pW, int* pH, std::vector<int32_t>& a_data);
+bool LoadLDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<int32_t>& a_data);
+bool LoadHDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<float>& a_data);
+
 bool SaveLDRImageToFile(const char* a_fileName, int w, int h, int32_t* data);
-
-
-bool LoadHDRImageFromFile(const char* a_fileName,
-                          int* pW, int* pH, std::vector<float>& a_data);
 
 float MSE_RGB_LDR(const std::vector<int32_t>& image1, const std::vector<int32_t>& image2);
 float MSE_RGB_HDR(const std::vector<float>& image1, const std::vector<float>& image2);
@@ -30,7 +27,7 @@ int main(int argc, const char** argv)
     std::string fileImg1 = argv[2];
 
     int w,h;
-    std::vector<int32_t> image1, image2;
+    std::vector<int32_t> image1,  image2;
     std::vector<float>   image1f, image2f;
 
     float mse = 0.0f;
@@ -51,7 +48,7 @@ int main(int argc, const char** argv)
     std::cout << mse << std::endl;
 
   }
-  catch(std::bad_alloc err)
+  catch(std::bad_alloc& err)
   {
     std::cout << "bad_alloc: " << err.what() << std::endl;
   }

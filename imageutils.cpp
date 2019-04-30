@@ -11,12 +11,14 @@
 #include <errno.h>
 #include <math.h>
 
+
 void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message)
 {
   std::cout << "\n***\n";
   std::cout << message;
   std::cout << "\n***\n";
 }
+
 
 bool LoadLDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<int32_t>& a_data)
 {
@@ -40,12 +42,12 @@ bool LoadLDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<
   BYTE* bits          = FreeImage_GetBits(converted);
   auto width          = FreeImage_GetWidth(converted);
   auto height         = FreeImage_GetHeight(converted);
-  auto bitsPerPixel   = FreeImage_GetBPP(converted);
+  //auto bitsPerPixel   = FreeImage_GetBPP(converted);
 
   a_data.resize(width*height);
   BYTE* data = (BYTE*)&a_data[0];
 
-  for (unsigned int y = 0; y<height; y++)
+  for (unsigned int y = 0; y < height; y++)
   {
     int lineOffset1 = y*width;
     int lineOffset2 = y*width;
@@ -67,7 +69,10 @@ bool LoadLDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<
 
   (*pW) = width;
   (*pH) = height;
+
+  return true;
 }
+
 
 bool SaveLDRImageToFile(const char* a_fileName, int w, int h, int32_t* data)
 {
@@ -108,10 +113,8 @@ bool SaveLDRImageToFile(const char* a_fileName, int w, int h, int32_t* data)
 }
 
 
-bool LoadHDRImageFromFile(const char* a_fileName, 
-                          int* pW, int* pH, std::vector<float>& a_data)
-{
-  
+bool LoadHDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<float>& a_data)
+{  
     const char* filename = a_fileName;
 
     FREE_IMAGE_FORMAT fif = FIF_UNKNOWN; // image format
@@ -148,7 +151,7 @@ bool LoadHDRImageFromFile(const char* a_fileName,
       return false;
     }
 
-    bool invertY = false; //(fif != FIF_BMP);
+    //bool invertY = false; //(fif != FIF_BMP);
 
     if (!dib)
     {
@@ -190,7 +193,7 @@ float MSE_RGB_LDR(const std::vector<int32_t>& image1, const std::vector<int32_t>
 
   double accum = 0.0;
 
-  for(int i=0;i<image1.size();i++)
+  for (int i = 0; i < (int)image1.size(); ++i)
   {
     const int pxData1 = image1[i];
     const int pxData2 = image2[i];
@@ -216,7 +219,7 @@ float MSE_RGB_HDR(const std::vector<float>& image1, const std::vector<float>& im
 
   double accum = 0.0;
 
-  for(int i=0;i<image1.size();i+=4)
+  for (int i = 0; i < (int)image1.size(); i += 4)
   {
     const float r1 = image1[i+0];
     const float g1 = image1[i+1];

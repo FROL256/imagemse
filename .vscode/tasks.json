@@ -1,0 +1,115 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks"  : [
+    {
+      "type"   : "shell",
+      "label"  : "Debug imagemse",
+      "command": "/usr/bin/g++",
+      "args"   : [
+        "-Wall",
+        "-ansi",
+        "-g",
+        "-std=c++11",
+        "imagemse.cpp",
+        "imageutils.cpp",
+        "-lfreeimage",
+        "-o",
+        "imagemse"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind"     : "build",
+        "isDefault": true
+      },
+      "detail": "компилятор: /usr/bin/g++"
+    },
+    {
+      "type"   : "shell",
+      "label"  : "Release imagemse",
+      "command": "/usr/bin/g++",
+      "args"   : [
+        "-Wall",
+        "-ansi",
+        "-O2",
+        "-std=c++11",
+        "imagemse.cpp",
+        "imageutils.cpp",
+        "-lfreeimage",
+        "-o",
+        "imagemse"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind"     : "build",
+        "isDefault": true
+      },
+      "detail": "компилятор: /usr/bin/g++"
+    },
+    {
+      "type"   : "shell",
+      "label"  : "Debug imagecut",
+      "command": "/usr/bin/g++",
+      "args"   : [
+        "-Wall",
+        "-ansi",
+        "-g",
+        "-std=c++11",
+        "imagecut.cpp",
+        "imageutils.cpp",
+        "-lfreeimage",
+        "-o",
+        "imagecut"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind"     : "build",
+        "isDefault": true
+      },
+      "detail": "компилятор: /usr/bin/g++"
+    },
+    {
+      "type"   : "shell",
+      "label"  : "Release imagecut",
+      "command": "/usr/bin/g++",
+      "args"   : [
+        "-Wall",
+        "-ansi",
+        "-O2",
+        "-std=c++11",
+        "imagecut.cpp",
+        "imageutils.cpp",
+        "-lfreeimage",
+        "-o",
+        "imagecut"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind"     : "build",
+        "isDefault": true
+      },
+      "detail": "компилятор: /usr/bin/g++"
+    }
+  ]
+}
