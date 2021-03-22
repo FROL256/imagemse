@@ -27,7 +27,7 @@ void imagecut(std::string dir, int* xywh, int quads, std::string dir_out)
   //
   FreeImage_SetOutputMessage(FreeImageErrorHandler);
 
-  std::vector<std:: string> files = listfiles(dir.c_str());
+  std::vector<std::string> files = listfiles(dir.c_str());
   std::sort(files.begin(), files.end());
  
   if(files.size() < 4)
@@ -59,9 +59,9 @@ void imagecut(std::string dir, int* xywh, int quads, std::string dir_out)
       continue;
 
     int w,h;
-    std:: vector<int32_t> image;
+    std::vector<int32_t> image;
     
-    std::string fileIn = dir     + "/" + p;
+    std::string fileIn = dir + "/" + p;
     LoadLDRImageFromFile(fileIn.c_str(), &w, &h, image);
     
     std::cout << " --> process file : " << p.c_str() << ", MSE = " << MSE_RGB_LDR(image, imageRef)*256.0f << std::endl;
