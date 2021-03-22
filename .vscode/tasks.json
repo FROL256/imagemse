@@ -3,6 +3,9 @@
   // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks"  : [
+    ////////////////
+    // imagemse
+    ////////////////
     {
       "type"   : "shell",
       "label"  : "Debug imagemse",
@@ -57,6 +60,9 @@
       },
       "detail": "компилятор: /usr/bin/g++"
     },
+    ////////////////
+    // imagecut
+    ////////////////
     {
       "type"   : "shell",
       "label"  : "Debug imagecut",
@@ -98,6 +104,63 @@
         "-lfreeimage",
         "-o",
         "imagecut"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind"     : "build",
+        "isDefault": true
+      },
+      "detail": "компилятор: /usr/bin/g++"
+    },
+    ////////////////
+    // imagedssim
+    ////////////////
+    {
+      "type"   : "shell",
+      "label"  : "Debug imagedssim",
+      "command": "/usr/bin/g++",
+      "args"   : [
+        "-Wall",
+        "-ansi",
+        "-g",
+        "-std=c++11",
+        "imagedssim.cpp",
+        "imageutils.cpp",
+        "-lfreeimage",
+        "-o",
+        "imagedssim"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind"     : "build",
+        "isDefault": true
+      },
+      "detail": "компилятор: /usr/bin/g++"
+    },
+    {
+      "type"   : "shell",
+      "label"  : "Release imagedssim",
+      "command": "/usr/bin/g++",
+      "args"   : [
+        "-Wall",
+        "-ansi",
+        "-O2",
+        "-std=c++11",
+        "imagedssim.cpp",
+        "imageutils.cpp",
+        "-lfreeimage",
+        "-o",
+        "imagedssim"
       ],
       "options": {
         "cwd": "${workspaceFolder}"

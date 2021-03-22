@@ -11,6 +11,10 @@
 #include <errno.h>
 #include <math.h>
 
+#include <numeric> // accumulate
+
+///////////////////////////////////////////////////////////////////////////////
+
 
 void FreeImageErrorHandler(FREE_IMAGE_FORMAT fif, const char *message)
 {
@@ -47,12 +51,12 @@ bool LoadLDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<
   a_data.resize(width*height);
   BYTE* data = (BYTE*)&a_data[0];
 
-  for (unsigned int y = 0; y < height; y++)
+  for (size_t y = 0; y < height; ++y)
   {
     int lineOffset1 = y*width;
     int lineOffset2 = y*width;
 
-    for (unsigned int x = 0; x<width; x++)
+    for (size_t x = 0; x < width; ++x)
     {
       int offset1 = lineOffset1 + x;
       int offset2 = lineOffset2 + x;
@@ -81,7 +85,8 @@ bool SaveLDRImageToFile(const char* a_fileName, int w, int h, int32_t* data)
   BYTE* bits = FreeImage_GetBits(dib);
   //memcpy(bits, data, w*h*sizeof(int32_t));
   BYTE* data2 = (BYTE*)data;
-  for (int i = 0; i<w*h; i++)
+
+  for (size_t i = 0; i < (size_t)(w*h); ++i)
   {
     bits[4 * i + 0] = data2[4 * i + 2];
     bits[4 * i + 1] = data2[4 * i + 1];
@@ -169,7 +174,7 @@ bool LoadHDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<
     const float* fbits = (const float*)bits;
     a_data.resize(width*height * 4);
 
-    for (unsigned int i = 0; i < width*height; i++)
+    for (size_t i = 0; i < width * height; ++i)
     {
       a_data[4 * i + 0] = fbits[3 * i + 0];
       a_data[4 * i + 1] = fbits[3 * i + 1];
@@ -193,22 +198,26 @@ float MSE_RGB_LDR(const std::vector<int32_t>& image1, const std::vector<int32_t>
 
   double accum = 0.0;
 
-  for (int i = 0; i < (int)image1.size(); ++i)
+  for (size_t i = 0; i < image1.size(); ++i)
   {
     const int pxData1 = image1[i];
     const int pxData2 = image2[i];
-    const int r1 = (pxData1 & 0x00FF0000) >> 16;
-    const int g1 = (pxData1 & 0x0000FF00) >> 8;
-    const int b1 = (pxData1 & 0x000000FF);
+    const int r1      = (pxData1 & 0x00FF0000) >> 16;
+    const int g1      = (pxData1 & 0x0000FF00) >> 8;
+    const int b1      = (pxData1 & 0x000000FF);
+     
+    const int r2      = (pxData2 & 0x00FF0000) >> 16;
+    const int g2      = (pxData2 & 0x0000FF00) >> 8;
+    const int b2      = (pxData2 & 0x000000FF);
 
-    const int r2 = (pxData2 & 0x00FF0000) >> 16;
-    const int g2 = (pxData2 & 0x0000FF00) >> 8;
-    const int b2 = (pxData2 & 0x000000FF);
+    const float diffR = r1-r2;
+    const float diffG = b1-b2;
+    const float diffB = g1-g2;
 
-    accum += double( (r1-r2)*(r1-r2) + (b1-b2)*(b1-b2) + (g1-g2)*(g1-g2) );
+    accum += double(diffR * diffR + diffG * diffG + diffB * diffB);
   }
 
-  return float(accum/double(image1.size()));
+  return float(accum / double(image1.size()));
 }
 
 
@@ -219,21 +228,148 @@ float MSE_RGB_HDR(const std::vector<float>& image1, const std::vector<float>& im
 
   double accum = 0.0;
 
-  for (int i = 0; i < (int)image1.size(); i += 4)
+  for (size_t i = 0; i < image1.size(); i += 4)
   {
-    const float r1 = image1[i+0];
-    const float g1 = image1[i+1];
-    const float b1 = image1[i+2];
-    
-    const float r2 = image2[i+0];
-    const float g2 = image2[i+1];
-    const float b2 = image2[i+2];
+    const float r1    = image1[i+0];
+    const float g1    = image1[i+1];
+    const float b1    = image1[i+2];
+       
+    const float r2    = image2[i+0];
+    const float g2    = image2[i+1];
+    const float b2    = image2[i+2];
 
-    accum += double( (r1-r2)*(r1-r2) + (b1-b2)*(b1-b2) + (g1-g2)*(g1-g2) );
+    const float diffR = r1-r2;
+    const float diffG = b1-b2;
+    const float diffB = g1-g2;
+
+    accum += double(diffR * diffR + diffG * diffG + diffB * diffB);
   }
 
-  return float(4.0*accum/double(image1.size())); // we mult by 4 due to image2.size() == w*h*4, but we actually want w*h
+  return float(4.0 * accum / double(image1.size())); // we mult by 4 due to image2.size() == w*h*4, but we actually want w*h
 }
 
 
+float Luminance(const float r, const float g, const float b) { return r * 0.2126F + g * 0.7152F + b * 0.0722F; }
+
+
+double MathExp(const std::vector<float> a_array, const bool a_square, const bool a_generalAggregate) 
+{
+  const double sizeArray = a_generalAggregate ? (int)a_array.size() : (int)a_array.size() - 1;
+
+  if (a_square)
+  {
+    double summ = 0.0F;
+
+    for (auto& i : a_array)    
+      summ += (i * i);
+    
+    return summ / sizeArray ;
+  }
+  else
+    return std::accumulate(a_array.begin(), a_array.end(), 0.0F) / sizeArray;
+}
+
+
+double DotMathExp(const std::vector<float> a_array1, const std::vector<float> a_array2) 
+{
+  const size_t sizeArray = a_array1.size();  
+  double summ = 0.0F;
+
+  for (size_t i = 0; i < sizeArray; ++i)
+    summ += (a_array1[i] * a_array2[i]);
+
+  return summ / (double)sizeArray;
+}
+
+
+double Covariance(const double dotMathExp, const double mathExpImg1, const double mathExpImg2)
+{
+  const double covariance = dotMathExp - (mathExpImg1 * mathExpImg2);
+  return covariance;
+}
+
+
+double Dispersion(const double mathExp, const double mathExpSqr)
+{
+  const double dispersion = mathExpSqr - (mathExp * mathExp);
+  return fmax(dispersion, 0.0F);
+}
+
+
+
+float DSSIM_RGB_LDR(const std::vector<int32_t>& a_image1, const std::vector<int32_t>& a_image2, const int a_width, const int a_height)
+{
+  if(a_image1.size() != a_image2.size())
+    return 0.0F;
+
+  const size_t sizeImg = a_image1.size();
+  
+  std::vector<float> img1Lum(sizeImg);
+  std::vector<float> img2Lum(sizeImg);
+
+  for (size_t i = 0; i < sizeImg; ++i)
+  {
+    const int pxData1 = a_image1[i];
+    const int pxData2 = a_image2[i];
+    const int r1      = (pxData1 & 0x00FF0000) >> 16;
+    const int g1      = (pxData1 & 0x0000FF00) >> 8;
+    const int b1      = (pxData1 & 0x000000FF);
+     
+    const int r2      = (pxData2 & 0x00FF0000) >> 16;
+    const int g2      = (pxData2 & 0x0000FF00) >> 8;
+    const int b2      = (pxData2 & 0x000000FF);
+
+    img1Lum[i]        = Luminance(r1, g1, b1) / 256;
+    img2Lum[i]        = Luminance(r2, g2, b2) / 256;  
+  }
+  
+  // test
+  //std::vector<float> img1Lum = {1, 3, 3, 14, 56};
+  //std::vector<float> img2Lum = {3, 67, 1, 2, 24};
+  // mathExpImg1    = 15.4
+  // mathExpImg2    = 19.4
+  // mathExpSqrImg1 = 670.2
+  // mathExpSqrImg2 = 1015.8
+  // dispImage1     = 433.04
+  // dispImage2     = 639.44
+  // dotMathExp     = 315.8
+  // covariance     = 17.04
+  // ssim           = 0.0797636
+  // dssim          = 0.460118
+
+  const double mathExpImg1    = MathExp(img1Lum, false, true); // mean
+  const double mathExpImg2    = MathExp(img2Lum, false, true); // mean
+  const double mathExpSqrImg1 = MathExp(img1Lum, true, true);
+  const double mathExpSqrImg2 = MathExp(img2Lum, true, true);  
+  const double dispImage1     = Dispersion(mathExpImg1, mathExpSqrImg1);  
+  const double dispImage2     = Dispersion(mathExpImg2, mathExpSqrImg2);
+  const double dotMathExp     = DotMathExp(img1Lum, img2Lum);
+  const double covariance     = Covariance(dotMathExp, mathExpImg1, mathExpImg2);
+        
+  std::cout << "mathExpImg1    = " << mathExpImg1    << std::endl;
+  std::cout << "mathExpImg2    = " << mathExpImg2    << std::endl;
+  std::cout << "mathExpSqrImg1 = " << mathExpSqrImg1 << std::endl;
+  std::cout << "mathExpSqrImg2 = " << mathExpSqrImg2 << std::endl;
+  std::cout << "dispImage1     = " << dispImage1     << std::endl;
+  std::cout << "dispImage2     = " << dispImage2     << std::endl;
+  std::cout << "dotMathExp     = " << dotMathExp     << std::endl;
+  std::cout << "covariance     = " << covariance     << std::endl;
+
+  const int    bpp    = 8;
+  const double L      = pow(2, bpp) - 1;
+  const double k1     = 0.01;
+  const double k2     = 0.03;
+  const double c1     = (k1 * L) * (k1 * L);
+  const double c2     = (k2 * L) * (k2 * L);
+
+  const double ssim   =    (2.0 * mathExpImg1 * mathExpImg2 + c1) * (2.0 * covariance + c2) / 
+    ((mathExpImg1 * mathExpImg1 + mathExpImg2 * mathExpImg2 + c1) * (dispImage1 + dispImage2 + c2));
+
+  const float dssim  = (1.0 - ssim) / 2.0;
+
+  std::cout<< "ssim           = " << ssim     << std::endl;
+  std::cout<< "dssim          = " << dssim    << std::endl;
+
+  return dssim;
+}
 
