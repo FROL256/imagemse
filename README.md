@@ -7,7 +7,7 @@ Compute RGB difference and divide it with width\*height. Not width\*height\*3.
 
 imagemse image1.png image2.png
 
-* DSSIM metric (for LDR):
+* DSSIM metric (both LDR and HDR):
 
 imagedssim image1.png image2.png
 
