@@ -8,8 +8,8 @@ bool LoadHDRImageFromFile(const char* a_fileName, int* pW, int* pH, std::vector<
 bool SaveLDRImageToFile(const char* a_fileName, int w, int h, int32_t* data);
 
 // Structural dissimilarity
-float DSSIM_RGB_LDR(const std::vector<int32_t>& image1, const std::vector<int32_t>& image2, const int a_width, const int a_height);
-//float DSSIM_RGB_HDR(const std::vector<float>& image1, const std::vector<float>& image2, const int a_width, const int a_height);
+float DSSIM_RGB_LDR(const std::vector<int32_t>& a_image1, const std::vector<int32_t>& a_image2);
+float DSSIM_RGB_HDR(const std::vector<float>& a_image1, const std::vector<float>& a_image2);
 
 
 int main(int argc, const char** argv)
@@ -37,13 +37,13 @@ int main(int argc, const char** argv)
     {
        LoadHDRImageFromFile(fileImg0.c_str(), &w, &h, image1f);
        LoadHDRImageFromFile(fileImg1.c_str(), &w, &h, image2f);
-       //dssim = DSSIM_RGB_HDR(image1f, image2f, w, h);
+       dssim = DSSIM_RGB_HDR(image1f, image2f);
     }
     else
     {
        LoadLDRImageFromFile(fileImg0.c_str(), &w, &h, image1);
        LoadLDRImageFromFile(fileImg1.c_str(), &w, &h, image2);
-       dssim = DSSIM_RGB_LDR(image1, image2, w, h);
+       dssim = DSSIM_RGB_LDR(image1, image2);
     }
 
     std::cout << dssim << std::endl;

@@ -296,8 +296,59 @@ double Dispersion(const double mathExp, const double mathExpSqr)
 }
 
 
+float Dssim(const std::vector<float>& a_img1Lum, const std::vector<float>& a_img2Lum, const int bpp)
+{
+  // test
+  //std::vector<float> img1Lum = {1, 3, 3, 14, 56};
+  //std::vector<float> img2Lum = {3, 67, 1, 2, 24};
+  // mathExpImg1    = 15.4
+  // mathExpImg2    = 19.4
+  // mathExpSqrImg1 = 670.2
+  // mathExpSqrImg2 = 1015.8
+  // dispImage1     = 433.04
+  // dispImage2     = 639.44
+  // dotMathExp     = 315.8
+  // covariance     = 17.04
+  // ssim           = 0.0797636
+  // dssim          = 0.460118
 
-float DSSIM_RGB_LDR(const std::vector<int32_t>& a_image1, const std::vector<int32_t>& a_image2, const int a_width, const int a_height)
+  const double mathExpImg1    = MathExp(a_img1Lum, false, true); // mean
+  const double mathExpImg2    = MathExp(a_img2Lum, false, true); // mean
+  const double mathExpSqrImg1 = MathExp(a_img1Lum, true, true);
+  const double mathExpSqrImg2 = MathExp(a_img2Lum, true, true);  
+  const double dispImage1     = Dispersion(mathExpImg1, mathExpSqrImg1);  
+  const double dispImage2     = Dispersion(mathExpImg2, mathExpSqrImg2);
+  const double dotMathExp     = DotMathExp(a_img1Lum, a_img2Lum);
+  const double covariance     = Covariance(dotMathExp, mathExpImg1, mathExpImg2);
+        
+  std::cout << "mathExpImg1    = " << mathExpImg1    << std::endl;
+  std::cout << "mathExpImg2    = " << mathExpImg2    << std::endl;
+  std::cout << "mathExpSqrImg1 = " << mathExpSqrImg1 << std::endl;
+  std::cout << "mathExpSqrImg2 = " << mathExpSqrImg2 << std::endl;
+  std::cout << "dispImage1     = " << dispImage1     << std::endl;
+  std::cout << "dispImage2     = " << dispImage2     << std::endl;
+  std::cout << "dotMathExp     = " << dotMathExp     << std::endl;
+  std::cout << "covariance     = " << covariance     << std::endl;
+
+  const double L      = pow(2, bpp) - 1;
+  const double k1     = 0.01;
+  const double k2     = 0.03;
+  const double c1     = (k1 * L) * (k1 * L);
+  const double c2     = (k2 * L) * (k2 * L);
+
+  const double ssim   =    (2.0 * mathExpImg1 * mathExpImg2 + c1) * (2.0 * covariance + c2) / 
+    ((mathExpImg1 * mathExpImg1 + mathExpImg2 * mathExpImg2 + c1) * (dispImage1 + dispImage2 + c2));
+
+  const float dssim  = (1.0 - ssim) / 2.0;
+
+  std::cout<< "ssim           = " << ssim     << std::endl;
+  std::cout<< "dssim          = " << dssim    << std::endl;
+
+  return dssim;
+}
+
+
+float DSSIM_RGB_LDR(const std::vector<int32_t>& a_image1, const std::vector<int32_t>& a_image2)
 {
   if(a_image1.size() != a_image2.size())
     return 0.0F;
@@ -321,55 +372,39 @@ float DSSIM_RGB_LDR(const std::vector<int32_t>& a_image1, const std::vector<int3
 
     img1Lum[i]        = Luminance(r1, g1, b1) / 256;
     img2Lum[i]        = Luminance(r2, g2, b2) / 256;  
-  }
-  
-  // test
-  //std::vector<float> img1Lum = {1, 3, 3, 14, 56};
-  //std::vector<float> img2Lum = {3, 67, 1, 2, 24};
-  // mathExpImg1    = 15.4
-  // mathExpImg2    = 19.4
-  // mathExpSqrImg1 = 670.2
-  // mathExpSqrImg2 = 1015.8
-  // dispImage1     = 433.04
-  // dispImage2     = 639.44
-  // dotMathExp     = 315.8
-  // covariance     = 17.04
-  // ssim           = 0.0797636
-  // dssim          = 0.460118
+  }  
 
-  const double mathExpImg1    = MathExp(img1Lum, false, true); // mean
-  const double mathExpImg2    = MathExp(img2Lum, false, true); // mean
-  const double mathExpSqrImg1 = MathExp(img1Lum, true, true);
-  const double mathExpSqrImg2 = MathExp(img2Lum, true, true);  
-  const double dispImage1     = Dispersion(mathExpImg1, mathExpSqrImg1);  
-  const double dispImage2     = Dispersion(mathExpImg2, mathExpSqrImg2);
-  const double dotMathExp     = DotMathExp(img1Lum, img2Lum);
-  const double covariance     = Covariance(dotMathExp, mathExpImg1, mathExpImg2);
-        
-  std::cout << "mathExpImg1    = " << mathExpImg1    << std::endl;
-  std::cout << "mathExpImg2    = " << mathExpImg2    << std::endl;
-  std::cout << "mathExpSqrImg1 = " << mathExpSqrImg1 << std::endl;
-  std::cout << "mathExpSqrImg2 = " << mathExpSqrImg2 << std::endl;
-  std::cout << "dispImage1     = " << dispImage1     << std::endl;
-  std::cout << "dispImage2     = " << dispImage2     << std::endl;
-  std::cout << "dotMathExp     = " << dotMathExp     << std::endl;
-  std::cout << "covariance     = " << covariance     << std::endl;
-
-  const int    bpp    = 8;
-  const double L      = pow(2, bpp) - 1;
-  const double k1     = 0.01;
-  const double k2     = 0.03;
-  const double c1     = (k1 * L) * (k1 * L);
-  const double c2     = (k2 * L) * (k2 * L);
-
-  const double ssim   =    (2.0 * mathExpImg1 * mathExpImg2 + c1) * (2.0 * covariance + c2) / 
-    ((mathExpImg1 * mathExpImg1 + mathExpImg2 * mathExpImg2 + c1) * (dispImage1 + dispImage2 + c2));
-
-  const float dssim  = (1.0 - ssim) / 2.0;
-
-  std::cout<< "ssim           = " << ssim     << std::endl;
-  std::cout<< "dssim          = " << dssim    << std::endl;
+  const float dssim  = Dssim(img1Lum, img2Lum, 8);
 
   return dssim;
 }
 
+
+float DSSIM_RGB_HDR(const std::vector<float>& a_image1, const std::vector<float>& a_image2)
+{
+  if(a_image1.size() != a_image2.size())
+    return 0.0f;
+
+  const size_t sizeImg = a_image1.size();
+  
+  std::vector<float> img1Lum(sizeImg);
+  std::vector<float> img2Lum(sizeImg);
+
+  for (size_t i = 0; i < sizeImg; i += 4)
+  {
+    const float r1    = a_image1[i+0];
+    const float g1    = a_image1[i+1];
+    const float b1    = a_image1[i+2];
+       
+    const float r2    = a_image2[i+0];
+    const float g2    = a_image2[i+1];
+    const float b2    = a_image2[i+2];
+
+    img1Lum[i]        = Luminance(r1, g1, b1);
+    img2Lum[i]        = Luminance(r2, g2, b2);  
+  }
+
+  const float dssim  = Dssim(img1Lum, img2Lum, 32);
+
+  return dssim;  
+}
