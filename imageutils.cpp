@@ -370,8 +370,8 @@ float DSSIM_RGB_LDR(const std::vector<int32_t>& a_image1, const std::vector<int3
     const int g2      = (pxData2 & 0x0000FF00) >> 8;
     const int b2      = (pxData2 & 0x000000FF);
 
-    img1Lum[i]        = Luminance(r1, g1, b1) / 256;
-    img2Lum[i]        = Luminance(r2, g2, b2) / 256;  
+    img1Lum[i]        = Luminance(r1, g1, b1) / 255;
+    img2Lum[i]        = Luminance(r2, g2, b2) / 255;  
   }  
 
   const float dssim  = Dssim(img1Lum, img2Lum, 8);
