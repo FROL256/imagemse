@@ -217,7 +217,7 @@ float MSE_RGB_LDR(const std::vector<int32_t>& image1, const std::vector<int32_t>
     accum += double(diffR * diffR + diffG * diffG + diffB * diffB);
   }
 
-  return float(accum / double(image1.size()));
+  return float(accum / double(size_t(3)*image1.size()));
 }
 
 
@@ -245,7 +245,7 @@ float MSE_RGB_HDR(const std::vector<float>& image1, const std::vector<float>& im
     accum += double(diffR * diffR + diffG * diffG + diffB * diffB);
   }
 
-  return float(4.0 * accum / double(image1.size())); // we mult by 4 due to image2.size() == w*h*4, but we actually want w*h
+  return float(4.0 * accum / double(size_t(3)*image1.size())); // we mult by 4 due to image2.size() == w*h*4, but we actually want w*h
 }
 
 
